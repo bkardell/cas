@@ -1,7 +1,7 @@
 /*! cas - v0.1.0 - 2013-09-28
 * Copyright (c) 2013 ; Licensed  */
 
-var css = { 
+var css = {
   parse: function(css, options){
     options = options || {};
 
@@ -461,6 +461,11 @@ var css = {
     return stylesheet();
   }
 };
+
+if (typeof exports !== "undefined") {
+  exports.css = css;
+  global.css = css;
+}
 
 /**
  * Trim `str`.
@@ -1238,6 +1243,50 @@ window.RSVP = requireModule("rsvp");
 }(window.ProllyfillRoot || window));
 /* jshint -W054 */
 (function (root) {
+
+	var fetchTextAndPromise = function(url) {
+		var promise = new root.Promise(function(resolve, reject){
+		var client = new XMLHttpRequest();
+		var handler = function handler() {
+		if (this.readyState === this.DONE) {
+			if (this.status === 200) { resolve(this.response); }
+			else { reject(this); }
+			}
+		};
+		client.open("GET", url);
+		client.onreadystatechange = handler;
+		client.responseType = "text";
+		client.setRequestHeader("Accept", "text");
+		client.send();
+		});
+
+		return promise;
+	};
+	// Not for server side compiling... 
+	var linkParseObserver = new root.ParseMutationObserver('link[type="text/x-cas"]', 'setImmediate');
+	var promiseAndPrecompile = function (url) {
+		return fetchTextAndPromise(url).then(function(text) {
+			root.cas.precompile(text);
+		});
+	};
+	linkParseObserver.on("notify", function (els) {
+		var promises = [];
+		for (var i=0;i<els.length;i++) {
+			promises.push(promiseAndPrecompile(els[i].href));
+		}
+		return new root.Promise.all(promises);
+	});
+	linkParseObserver.on("done", function () {
+		var elements = document.querySelectorAll('script[type="text/x-cas"]');
+		for (var i=0;i<elements.length;i++) {
+			root.cas.precompile(elements[i].innerHTML);
+		}
+		var program = root.cas.compile();
+		root.cas.init(program);
+	});
+}((typeof global==="undefined") ? window : global ));
+/* jshint -W054 */
+(function (root) {
 	/* Ordered collection of precompiled rules { selector: string, specificty: number, command: compiledFn } */
 	var ordered = [];
 	/**
@@ -1278,20 +1327,30 @@ window.RSVP = requireModule("rsvp");
 		applyItem: "cas._applyCasProp(\"<selector>\", <hash>, \"<el>\");", 
 		applyListener: "cas._applyCasListener(\"<selector>\", \"<state>\", <hash>.attach, \"<el>\");"
 	};
-	var outBuff = [
-			qsa,
-			applyMutations,
-			applyCasProp,
-			applyCasListener
-	];
+	var outBuff = [];
+
 	var re = { 
 		pseudoclass: /:(.*)/, 
 		listener: /^on/ 
 	};
 
 
-	root.cas = {
+	var cas = {
 		ordered: [], 
+		reset: function () {
+			outBuff = [
+					qsa,
+					applyMutations,
+					applyCasProp,
+					applyCasListener
+			];
+			cas.ordered = [];
+		},
+		init: function (program) {
+			var fn = new Function([], program);
+			fn();
+			root.cas.observe();
+		},
 		compile: function () {
 			ordered.forEach(function (item) {
 				outBuff.push(item.command);
@@ -1327,49 +1386,12 @@ window.RSVP = requireModule("rsvp");
 			});
 		}
 	};
-
-	var fetchTextAndPromise = function(url) {
-		var promise = new root.Promise(function(resolve, reject){
-		var client = new XMLHttpRequest();
-		var handler = function handler() {
-		if (this.readyState === this.DONE) {
-			if (this.status === 200) { resolve(this.response); }
-			else { reject(this); }
-			}
-		};
-		client.open("GET", url);
-		client.onreadystatechange = handler;
-		client.responseType = "text";
-		client.setRequestHeader("Accept", "text");
-		client.send();
-		});
-
-		return promise;
-	};
-
-	var linkParseObserver = new root.ParseMutationObserver('link', 'setImmediate');
-	var promiseAndPrecompile = function (url) {
-		return fetchTextAndPromise(url).then(function(text) {
-			root.cas.precompile(text);
-		});
-	};
-	linkParseObserver.on("notify", function (els) {
-		var promises = [];
-		for (var i=0;i<els.length;i++) {
-			promises.push(promiseAndPrecompile(els[i].href));
-		}
-		return new root.Promise.all(promises);
-	});
-	linkParseObserver.on("done", function () {
-		var elements = document.querySelectorAll('script[type="text/cas"]');
-		for (var i=0;i<elements.length;i++) {
-			root.cas.precompile(elements[i].innerHTML);
-		}
-		var program = root.cas.compile();
-		var fn = new Function([], program);
-		fn();
-		root.cas.observe();
-	});
+	cas.reset();
+	if (typeof exports !== "undefined") {
+		exports.cas = cas;
+	} 
+	// meh
+	root.cas = cas;
 }((typeof global==="undefined") ? window : global ));
 /* jshint -W054 */
 (function (cas) {
