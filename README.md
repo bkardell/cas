@@ -20,17 +20,22 @@ video { preload: true; }
 use (interpreted)
 ===
 1. Include cas - anywhere will do, it uses ParseMutationObservers (todo: link/commit)
-```html
+
+```
 <script src="../dist/cas.min.js"></script>
 ```
+
 2. Add some cas either via:
-```html
+
+```
 <link type="text/x-cas" href="test.cas"></link>
 ```
+
 or
-```html
+```
 <script type="text/x-cas">...</script>
 ```
+
 3. Have fun.
 
 
