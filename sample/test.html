@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+
+
+
+		<link type="text/x-promised-cas" href="test.css"></link>
+		<script type="text/cas">
+			p:onclick {
+			  preload: metadata;
+			  attach: testing;
+			}
+
+			p {
+			  preload: auto;
+			}
+
+			#foo {
+				read-only: !on;
+			}
+
+			.bar {
+				on-load: testing;
+			}
+		</script>
+		<script src="../dist/cas.min.js"></script>
+		
+
+		<script>
+
+
+			var testing = function () {
+				alert('testing 1,2,3....');
+			};
+			
+			
+
+		</script>
+		
+		<!-- script src="castest.js"></script> -->
+	</head>
+	<body>
+		<p>hello</p>
+		<video></video>
+	</body>
+</html>
