@@ -10,6 +10,11 @@ basic idea
 
 /* set the preload attribute on all video elements */
 video { preload: true; } 
+
+/* attach the showHelp function to any .helpButton child of .controls */
+.controls > helpButton:onclick {
+  attach: showHelp;
+}
 ```
 
 use (interpreted)
