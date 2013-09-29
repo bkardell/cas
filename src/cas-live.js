@@ -1,29 +1,11 @@
 /* globals global */
 /* jshint -W054 */
 (function (root) {
-
-	var fetchTextAndPromise = function(url) {
-		var promise = new root.Promise(function(resolve, reject){
-		var client = new XMLHttpRequest();
-		var handler = function handler() {
-		if (this.readyState === this.DONE) {
-			if (this.status === 200) { resolve(this.response); }
-			else { reject(this); }
-			}
-		};
-		client.open("GET", url);
-		client.onreadystatechange = handler;
-		client.responseType = "text";
-		client.setRequestHeader("Accept", "text");
-		client.send();
-		});
-
-		return promise;
-	};
 	// Not for server side compiling... 
-	var linkParseObserver = new root.ParseMutationObserver('link[type="text/x-cas"]', 'setImmediate');
+	var ParseMutationObserver = (root.Hitch) ? root.Hitch.ParseMutationObserver : root.ParseMutationObserver;
+	var linkParseObserver = new ParseMutationObserver('link[type="text/x-cas"]');
 	var promiseAndPrecompile = function (url) {
-		return fetchTextAndPromise(url).then(function(text) {
+		return ParseMutationObserver.promiseUrl(url).then(function(text) {
 			root.cas.precompile(text);
 		});
 	};
@@ -32,7 +14,7 @@
 		for (var i=0;i<els.length;i++) {
 			promises.push(promiseAndPrecompile(els[i].href));
 		}
-		return new root.Promise.all(promises);
+		return new ParseMutationObserver.Promise.all(promises);
 	});
 	linkParseObserver.on("done", function () {
 		var elements = document.querySelectorAll('script[type="text/x-cas"]');

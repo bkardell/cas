@@ -1,4 +1,4 @@
-/*! cas - v0.1.0 - 2013-09-28
+/*! cas - v0.1.0 - 2013-09-29
 * Copyright (c) 2013 ; Licensed  */
 
 var css = {
@@ -476,7 +476,7 @@ function trim(str) {
 }
 
 
-/*! parse-mutation-observer - v0.1.0 - 2013-09-28
+/*! parse-mutation-observer - v0.1.0 - 2013-09-29
 * Copyright (c) 2013 ; Licensed  */
 (function(globals) {
 var define, requireModule;
@@ -1156,10 +1156,12 @@ define("rsvp",
   });
 window.RSVP = requireModule("rsvp");
 })(window);
+if (!window.Hitch) {
+	window.Hitch = {};
+}
+window.ProllyfillRoot = window.Hitch;
 (function (attachTo) {
     "use strict";
-    attachTo.Promise = RSVP.Promise;
-    attachTo.Promise.all = RSVP.all;
     attachTo.ParseMutationObserver = function (filterQuery) {
         var connected,
             eventCallbacks = {},
@@ -1231,7 +1233,7 @@ window.RSVP = requireModule("rsvp");
             if (connected) {
                self.disconnect(true);
             }
-            attachTo.Promise.all(promises).then(function(){
+            attachTo.ParseMutationObserver.Promise.all(promises).then(function(){
                 var cbs = eventCallbacks.done;
                 var max = (cbs||[]).length;
                 for (var i=0;i<max;i++) {
@@ -1240,32 +1242,35 @@ window.RSVP = requireModule("rsvp");
             });
         });
     };
+    attachTo.ParseMutationObserver.version = "0.1.0";
+    attachTo.ParseMutationObserver.Promise = RSVP.Promise;
+    attachTo.ParseMutationObserver.Promise.all = RSVP.all;
+    attachTo.ParseMutationObserver.promiseUrl = function(url) {
+        var promise = new attachTo.ParseMutationObserver.Promise(function(resolve, reject){
+        var client = new XMLHttpRequest();
+        var handler = function handler() {
+        if (this.readyState === this.DONE) {
+            if (this.status === 200) { resolve(this.response); }
+            else { reject(this); }
+            }
+        };
+        client.open("GET", url);
+        client.onreadystatechange = handler;
+        client.responseType = "text";
+        client.setRequestHeader("Accept", "text");
+        client.send();
+        });
+
+        return promise;
+    };
 }(window.ProllyfillRoot || window));
 /* jshint -W054 */
 (function (root) {
-
-	var fetchTextAndPromise = function(url) {
-		var promise = new root.Promise(function(resolve, reject){
-		var client = new XMLHttpRequest();
-		var handler = function handler() {
-		if (this.readyState === this.DONE) {
-			if (this.status === 200) { resolve(this.response); }
-			else { reject(this); }
-			}
-		};
-		client.open("GET", url);
-		client.onreadystatechange = handler;
-		client.responseType = "text";
-		client.setRequestHeader("Accept", "text");
-		client.send();
-		});
-
-		return promise;
-	};
 	// Not for server side compiling... 
-	var linkParseObserver = new root.ParseMutationObserver('link[type="text/x-cas"]', 'setImmediate');
+	var ParseMutationObserver = (root.Hitch) ? root.Hitch.ParseMutationObserver : root.ParseMutationObserver;
+	var linkParseObserver = new ParseMutationObserver('link[type="text/x-cas"]');
 	var promiseAndPrecompile = function (url) {
-		return fetchTextAndPromise(url).then(function(text) {
+		return ParseMutationObserver.promiseUrl(url).then(function(text) {
 			root.cas.precompile(text);
 		});
 	};
@@ -1274,7 +1279,7 @@ window.RSVP = requireModule("rsvp");
 		for (var i=0;i<els.length;i++) {
 			promises.push(promiseAndPrecompile(els[i].href));
 		}
-		return new root.Promise.all(promises);
+		return new ParseMutationObserver.Promise.all(promises);
 	});
 	linkParseObserver.on("done", function () {
 		var elements = document.querySelectorAll('script[type="text/x-cas"]');
