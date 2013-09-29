@@ -43,7 +43,7 @@ or
 3. Have fun.
 
 
-use (precompiling)
+Use (precompiling)
 ====
 You can use node to precompile all .cas files in a folder:
 ```javascript
