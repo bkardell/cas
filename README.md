@@ -43,8 +43,7 @@ use (precompiling)
 ====
 You can use node to precompile all .cas files in a folder:
 ```javascript
-// todo: rename that file ;)
-node test sample
+node precompile sample
 ```
 This will generate a .cas.js file which you can include via normal script tag.
 

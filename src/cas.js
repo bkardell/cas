@@ -33,7 +33,7 @@
 	};
 
 	var qsa = "cas._querySelectorAll = function (selector) { return Array.prototype.slice.call(document.querySelectorAll(selector)); };";
-	var applyMutations = "cas._applyMutations = function (el, hash) { for (var name in hash) { el.setAttribute( name, hash[name]); }};";
+	var applyMutations = "cas._applyMutations = function (el, hash) { for (var name in hash) { if(hash[name]==='!off') { el.removeAttribute( name ); } else { el.setAttribute( name, hash[name]); }}};";
 	var applyCasProp = "cas._applyCasProp = function (selector,hash) { cas._querySelectorAll(selector).forEach(function (el) { cas._applyMutations(el, hash) }); };";
 	var applyCasListener = "cas._applyCasListener = function (selector,state,evtName) { cas._querySelectorAll(selector).forEach(function (el) { el.addEventListener(state, window[evtName], false); } ); };";
 
