@@ -23,7 +23,7 @@ input.foo { disabled: !off; }
 
 Use (interpreted)
 ===
-1. Include cas - anywhere will do, it uses ParseMutationObservers (todo: link/commit)
+1. Include cas - anywhere will do, it uses [ParseMutationObservers](https://github.com/bkardell/ParseMutationObservers)
 
 ```
 <script src="../dist/cas.min.js"></script>
