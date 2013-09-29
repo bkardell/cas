@@ -1,23 +1,27 @@
 cas
 ===
 
-Some kinda starting poc on Tab Atkins Cascading Attribute Sheets http://www.xanthir.com/blog/b4K_0
+Early prollyfill variant of Tab Atkins Cascading Attribute Sheets http://www.xanthir.com/blog/b4K_0
 
-basic idea
+The Basic Idea
 ===
+CAS is a rule based system that works like CSS, you can use it to attach/detach/change properties and listeners.
 ```css
 /*  my.cas */
 
 /* set the preload attribute on all video elements */
 video { preload: true; } 
 
-/* attach the showHelp function to any .helpButton child of .controls */
+/* attach the showHelp function to onclick of any .helpButton child of .controls (any valid onevent works) */
 .controls > helpButton:onclick {
   attach: showHelp;
 }
+
+/* !off is a special idnetifier that removes the attribute (you can use !on for boolean attrs as well) */
+input.foo { disabled: !off; }
 ```
 
-use (interpreted)
+Use (interpreted)
 ===
 1. Include cas - anywhere will do, it uses ParseMutationObservers (todo: link/commit)
 
